@@ -13,7 +13,7 @@ define Package/r8169-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/rtl_nic
 	$(CP) \
 		$(PKG_BUILD_DIR)/rtl_nic/rtl810* \
-		$(PKG_BUILD_DIR)/rtl_nic/rtl8125* \
+		$(PKG_BUILD_DIR)/rtl_nic/rtl812* \
 		$(PKG_BUILD_DIR)/rtl_nic/rtl8168* \
 		$(PKG_BUILD_DIR)/rtl_nic/rtl84* \
 		$(1)/lib/firmware/rtl_nic
@@ -69,13 +69,6 @@ define Package/rtl8192se-firmware/install
 endef
 $(eval $(call BuildPackage,rtl8192se-firmware))
 
-Package/rtl8192su-firmware = $(call Package/firmware-default,RealTek RTL8192SU firmware)
-define Package/rtl8192su-firmware/install
-	$(INSTALL_DIR) $(1)/lib/firmware/rtlwifi
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtlwifi/rtl8712u.bin $(1)/lib/firmware/rtlwifi
-endef
-$(eval $(call BuildPackage,rtl8192su-firmware))
-
 Package/rtl8723au-firmware = $(call Package/firmware-default,RealTek RTL8723AU firmware)
 define Package/rtl8723au-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/rtlwifi
@@ -100,10 +93,33 @@ define Package/rtl8723du-firmware/install
 endef
 $(eval $(call BuildPackage,rtl8723du-firmware))
 
+Package/rtl8761a-firmware = $(call Package/firmware-default,RealTek RTL8761A firmware)
+define Package/rtl8761a-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtl_bt
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtl_bt/rtl8761a_fw.bin $(1)/lib/firmware/rtl_bt
+endef
+$(eval $(call BuildPackage,rtl8761a-firmware))
+
+Package/rtl8761b-firmware = $(call Package/firmware-default,RealTek RTL8761B firmware)
+define Package/rtl8761b-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtl_bt
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtl_bt/rtl8761b_config.bin $(1)/lib/firmware/rtl_bt
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtl_bt/rtl8761b_fw.bin $(1)/lib/firmware/rtl_bt
+endef
+$(eval $(call BuildPackage,rtl8761b-firmware))
+
+Package/rtl8761bu-firmware = $(call Package/firmware-default,RealTek RTL8761BU firmware)
+define Package/rtl8761bu-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtl_bt
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtl_bt/rtl8761bu_config.bin $(1)/lib/firmware/rtl_bt
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtl_bt/rtl8761bu_fw.bin $(1)/lib/firmware/rtl_bt
+endef
+$(eval $(call BuildPackage,rtl8761bu-firmware))
+
 Package/rtl8821ae-firmware = $(call Package/firmware-default,RealTek RTL8821AE firmware)
 define Package/rtl8821ae-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/rtlwifi
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtlwifi/rtl8821aefw.bin $(1)/lib/firmware/rtlwifi
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtlwifi/rtl8821aefw_29.bin $(1)/lib/firmware/rtlwifi
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtlwifi/rtl8821aefw_wowlan.bin $(1)/lib/firmware/rtlwifi
 endef
 $(eval $(call BuildPackage,rtl8821ae-firmware))
@@ -130,11 +146,31 @@ define Package/rtl8822ce-firmware/install
 endef
 $(eval $(call BuildPackage,rtl8822ce-firmware))
 
-Package/rtw89-firmware = $(call Package/firmware-default,RealTek RTW89 firmware)
-define Package/rtw89-firmware/install
+Package/rtl8851be-firmware = $(call Package/firmware-default,RealTek RTL8851BE firmware)
+define Package/rtl8851be-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/rtw89
-	$(CP) \
-		$(PKG_BUILD_DIR)/rtw89/* \
-		$(1)/lib/firmware/rtw89
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8851b_fw.bin $(1)/lib/firmware/rtw89
 endef
-$(eval $(call BuildPackage,rtw89-firmware))
+$(eval $(call BuildPackage,rtl8851be-firmware))
+
+Package/rtl8852ae-firmware = $(call Package/firmware-default,RealTek RTL8852AE firmware)
+define Package/rtl8852ae-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw89
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8852a_fw.bin $(1)/lib/firmware/rtw89
+endef
+$(eval $(call BuildPackage,rtl8852ae-firmware))
+
+Package/rtl8852be-firmware = $(call Package/firmware-default,RealTek RTL8852BE firmware)
+define Package/rtl8852be-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw89
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8852b_fw.bin $(1)/lib/firmware/rtw89
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8852b_fw-1.bin $(1)/lib/firmware/rtw89
+endef
+$(eval $(call BuildPackage,rtl8852be-firmware))
+
+Package/rtl8852ce-firmware = $(call Package/firmware-default,RealTek RTL8852CE firmware)
+define Package/rtl8852ce-firmware/install
+	$(INSTALL_DIR) $(1)/lib/firmware/rtw89
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/rtw89/rtw8852c_fw.bin $(1)/lib/firmware/rtw89
+endef
+$(eval $(call BuildPackage,rtl8852ce-firmware))

@@ -40,6 +40,12 @@ define Build/hatlab-gateboard-combined
 	256
 endef
 
+define Build/h3c-blank-header
+	dd if=/dev/zero of=$@.blank bs=160 count=1
+	cat $@ >> $@.blank
+	mv $@.blank $@
+endef
+
 define Build/hatlab-gateboard-kernel
 	rm -fR $@.initrd
 	rm -fR $@.initrd.cpio
@@ -731,7 +737,7 @@ define Device/glinet_gl-mt1300
   IMAGE_SIZE := 32448k
   DEVICE_VENDOR := GL.iNet
   DEVICE_MODEL := GL-MT1300
-  DEVICE_PACKAGES := kmod-mt7615d_dbdc kmod-usb3 -luci-newapi -wpad-openssl
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 -uboot-envtools
 endef
 TARGET_DEVICES += glinet_gl-mt1300
 
@@ -754,6 +760,40 @@ define Device/gnubee_gb-pc2
   IMAGE_SIZE := 32448k
 endef
 TARGET_DEVICES += gnubee_gb-pc2
+
+define Device/h3c_tx180x
+  $(Device/dsa-migration)
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 8192k
+  IMAGE_SIZE := 120832k
+  UBINIZE_OPTS := -E 5
+  KERNEL_LOADADDR := 0x82000000
+  KERNEL_INITRAMFS := kernel-bin | relocate-kernel 0x80001000 | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL := $$(KERNEL_INITRAMFS) | h3c-blank-header
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_VENDOR := H3C
+  DEVICE_PACKAGES := kmod-mt7915e uboot-envtools
+endef
+
+define Device/h3c_tx1800-plus
+  $(Device/h3c_tx180x)
+  DEVICE_MODEL := TX1800 Plus
+endef
+TARGET_DEVICES += h3c_tx1800-plus
+
+define Device/h3c_tx1801-plus
+  $(Device/h3c_tx180x)
+  DEVICE_MODEL := TX1801 Plus
+endef
+TARGET_DEVICES += h3c_tx1801-plus
+
+define Device/h3c_tx1806
+  $(Device/h3c_tx180x)
+  DEVICE_MODEL := TX1806
+endef
+TARGET_DEVICES += h3c_tx1806
 
 define Device/hatlab_gateboard-one
   $(Device/dsa-migration)
@@ -801,6 +841,27 @@ define Device/hiwifi_hc5962
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3
 endef
 TARGET_DEVICES += hiwifi_hc5962
+
+define Device/ht-jsh_0211
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := HT-JSH
+  DEVICE_MODEL := 0211
+  DEVICE_PACKAGES := kmod-mt7603
+endef
+TARGET_DEVICES += ht-jsh_0211
+
+define Device/huasifei_ws1208v2
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 32448k
+  DEVICE_VENDOR := Huasifei
+  DEVICE_MODEL := WS1208V2
+  DEVICE_PACKAGES := kmod-ata-ahci kmod-mt7603 kmod-mt76x2 kmod-sdhci-mt7620 \
+	kmod-usb3 kmod-usb-net-cdc-mbim kmod-usb-net-qmi-wwan \
+	kmod-usb-serial-option luci-proto-qmi
+endef
+TARGET_DEVICES += huasifei_ws1208v2
 
 define Device/iodata_wn-ax1167gr
   $(Device/dsa-migration)
@@ -969,6 +1030,15 @@ define Device/jcg_y2
 endef
 TARGET_DEVICES += jcg_y2
 
+define Device/jdcloud_re-cp-02
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 16000k
+  DEVICE_VENDOR := JD-Cloud
+  DEVICE_MODEL := RE-CP-02
+  DEVICE_PACKAGES := kmod-mt7915-firmware kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += jdcloud_re-cp-02
+
 define Device/jdcloud_re-sp-01b
   $(Device/dsa-migration)
   IMAGE_SIZE := 27328k
@@ -1081,10 +1151,11 @@ TARGET_DEVICES += linksys_re6500
 
 define Device/mediatek_ap-mt7621a-v60
   $(Device/dsa-migration)
-  IMAGE_SIZE := 7872k
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 32448k
   DEVICE_VENDOR := Mediatek
   DEVICE_MODEL := AP-MT7621A-V60 EVB
-  DEVICE_PACKAGES := kmod-usb3 kmod-sdhci-mt7620 kmod-sound-mt7620 -wpad-openssl
+  DEVICE_PACKAGES := kmod-usb3 kmod-i2c-gpio kmod-rtc-pcf8563 kmod-sdhci-mt7620 kmod-sound-mt7620 kmod-mt76x2
 endef
 TARGET_DEVICES += mediatek_ap-mt7621a-v60
 
@@ -1339,6 +1410,15 @@ define Device/netis_wf2881
 endef
 TARGET_DEVICES += netis_wf2881
 
+define Device/openfi_5pro
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 63448k
+  DEVICE_VENDOR := OpenFi
+  DEVICE_MODEL := 5Pro 
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap kmod-usb3
+endef
+TARGET_DEVICES += openfi_5pro
+
 define Device/oraybox_x3a
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
@@ -1355,7 +1435,7 @@ define Device/phicomm_k2p
   DEVICE_MODEL := K2P
   SUPPORTED_DEVICES += k2p
   DEVICE_COMPAT_VERSION := 1.1
-  DEVICE_PACKAGES := -luci-newapi -wpad-openssl kmod-mt7615d_dbdc wireless-tools
+  DEVICE_PACKAGES := -wpad-openssl kmod-mt7615d_dbdc wireless-tools luci-oldapi
 endef
 TARGET_DEVICES += phicomm_k2p
 
@@ -1964,7 +2044,7 @@ define Device/zte_e8820s
   PAGESIZE := 2048
   KERNEL_SIZE := 4096k
   UBINIZE_OPTS := -E 5
-  IMAGE_SIZE := 32768k
+  IMAGE_SIZE := 129280k
   IMAGES += factory.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
@@ -1972,6 +2052,6 @@ define Device/zte_e8820s
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820S
   DEVICE_PACKAGES := kmod-mt7603e kmod-mt76x2e kmod-usb3 \
-	kmod-usb-ledtrig-usbport luci-app-mtwifi
+	kmod-usb-ledtrig-usbport luci-app-mtwifi -wpad-openssl
 endef
 TARGET_DEVICES += zte_e8820s

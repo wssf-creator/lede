@@ -9,8 +9,8 @@
 
 / {
 	aliases {
-		mmc0 = &sdmmc0;
-		mmc1 = &sdhci;
+		mmc0 = &sdhci;
+		mmc1 = &sdmmc0;
 
 		led-boot = &led_work;
 		led-failsafe = &led_work;
@@ -22,7 +22,6 @@
 		stdout-path = "serial2:1500000n8";
 	};
 
-#ifdef DTS_NO_LEGACY
 	hdmi-con {
 		compatible = "hdmi-connector";
 		type = "a";
@@ -33,7 +32,6 @@
 			};
 		};
 	};
-#endif
 
 	keys {
 		compatible = "gpio-keys";
@@ -143,6 +141,13 @@
 			sound-dai = <&rk809>;
 		};
 	};
+
+	pwm-fan {
+		compatible = "pwm-fan";
+		cooling-levels = <0 100 150 200 255>;
+		#cooling-cells = <2>;
+		pwms = <&pwm0 0 50000 0>;
+	};
 };
 
 &combphy0 {
@@ -173,7 +178,6 @@
 	cpu-supply = <&vdd_cpu>;
 };
 
-#ifdef DTS_NO_LEGACY
 &gpu {
 	mali-supply = <&vdd_gpu>;
 	status = "okay";
@@ -200,7 +204,6 @@
 &hdmi_sound {
 	status = "okay";
 };
-#endif
 
 &i2c0 {
 	status = "okay";
@@ -212,8 +215,8 @@
 		regulator-name = "vdd_cpu";
 		regulator-always-on;
 		regulator-boot-on;
-		regulator-min-microvolt = <800000>;
-		regulator-max-microvolt = <1150000>;
+		regulator-min-microvolt = <712500>;
+		regulator-max-microvolt = <1390000>;
 		regulator-ramp-delay = <2300>;
 		vin-supply = <&vcc5v0_sys>;
 
@@ -252,7 +255,6 @@
 			vdd_logic: DCDC_REG1 {
 				regulator-always-on;
 				regulator-boot-on;
-				regulator-init-microvolt = <900000>;
 				regulator-initial-mode = <0x2>;
 				regulator-min-microvolt = <500000>;
 				regulator-max-microvolt = <1350000>;
@@ -266,7 +268,6 @@
 
 			vdd_gpu: DCDC_REG2 {
 				regulator-always-on;
-				regulator-init-microvolt = <900000>;
 				regulator-initial-mode = <0x2>;
 				regulator-min-microvolt = <500000>;
 				regulator-max-microvolt = <1350000>;
@@ -290,7 +291,6 @@
 			};
 
 			vdd_npu: DCDC_REG4 {
-				regulator-init-microvolt = <900000>;
 				regulator-initial-mode = <0x2>;
 				regulator-min-microvolt = <500000>;
 				regulator-max-microvolt = <1350000>;
@@ -443,29 +443,17 @@
 	};
 };
 
-#ifdef DTS_NO_LEGACY
+&i2c5 {
+	status = "okay";
+};
+
 &i2s0_8ch {
 	status = "okay";
 };
-#endif
 
 &i2s1_8ch {
 	rockchip,trcm-sync-tx-only;
 	status = "okay";
-};
-
-&mdio0 {
-	rgmii_phy0: ethernet-phy@0 {
-		compatible = "ethernet-phy-ieee802.3-c22";
-		reg = <0x0>;
-	};
-};
-
-&mdio1 {
-	rgmii_phy1: ethernet-phy@0 {
-		compatible = "ethernet-phy-ieee802.3-c22";
-		reg = <0x0>;
-	};
 };
 
 &pcie2x1 {
@@ -485,7 +473,7 @@
 	vpcie3v3-supply = <&vcc3v3_pcie>;
 	status = "okay";
 
-	pcie@10 {
+	pcie@0,0 {
 		reg = <0x00100000 0 0 0 0>;
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -503,7 +491,7 @@
 	vpcie3v3-supply = <&vcc3v3_pcie>;
 	status = "okay";
 
-	pcie@20 {
+	pcie@0,0 {
 		reg = <0x00200000 0 0 0 0>;
 		#address-cells = <3>;
 		#size-cells = <2>;
@@ -562,6 +550,10 @@
 	status = "okay";
 };
 
+&pwm0 {
+	status = "okay";
+};
+
 &rng {
 	status = "okay";
 };
@@ -591,7 +583,7 @@
 	disable-wp;
 	pinctrl-names = "default";
 	pinctrl-0 = <&sdmmc0_bus4 &sdmmc0_clk &sdmmc0_cmd &sdmmc0_det>;
-	sd-uhs-sdr104;
+	sd-uhs-sdr50;
 	vmmc-supply = <&vcc3v3_sd>;
 	vqmmc-supply = <&vccio_sd>;
 	status = "okay";
@@ -650,7 +642,6 @@
 	status = "okay";
 };
 
-#ifdef DTS_NO_LEGACY
 &vop {
 	assigned-clocks = <&cru DCLK_VOP0>, <&cru DCLK_VOP1>;
 	assigned-clock-parents = <&pmucru PLL_HPLL>, <&cru PLL_VPLL>;
@@ -667,4 +658,3 @@
 		remote-endpoint = <&hdmi_in_vp0>;
 	};
 };
-#endif

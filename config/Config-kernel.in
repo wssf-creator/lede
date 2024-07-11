@@ -50,6 +50,15 @@ config KERNEL_ARM_PMU
 	default n
 	depends on (arm || aarch64)
 
+config KERNEL_RISCV_PMU
+	bool
+	select KERNEL_RISCV_PMU_SBI
+	depends on riscv64
+
+config KERNEL_RISCV_PMU_SBI
+	bool
+	depends on riscv64
+
 config KERNEL_X86_VSYSCALL_EMULATION
 	bool "Enable vsyscall emulation"
 	default n
@@ -72,6 +81,7 @@ config KERNEL_PERF_EVENTS
 	bool "Compile the kernel with performance events and counters"
 	default n
 	select KERNEL_ARM_PMU if (arm || aarch64)
+	select KERNEL_RISCV_PMU if riscv64
 
 config KERNEL_PROFILING
 	bool "Compile the kernel with profiling enabled"
@@ -400,6 +410,17 @@ config KERNEL_DEBUG_INFO_REDUCED
 	  build directory object sizes shrink dramatically over a full
 	  DEBUG_INFO build and compile times are reduced too.
 	  Only works with newer gcc versions.
+
+config KERNEL_FRAME_WARN
+	int
+	range 0 8192
+	default 1280 if KERNEL_KASAN && !ARCH_64BIT
+	default 1024 if !ARCH_64BIT
+	default 2048 if ARCH_64BIT
+	help
+	  Tell the compiler to warn at build time for stack frames larger than this.
+	  Setting this too low will cause a lot of warnings.
+	  Setting it to 0 disables the warning.
 
 config KERNEL_DEBUG_LL_UART_NONE
 	bool
@@ -1056,6 +1077,13 @@ if KERNEL_IP_MROUTE
 
 endif
 
+config KERNEL_MPTCP
+	bool "Enable IPv4 MultiPath TCP support"
+	default y
+	depends on !(LINUX_4_4||LINUX_5_4)
+	help
+	  IPv4 MultiPath TCP to kernel support.
+
 #
 # IPv6 configuration
 #
@@ -1096,6 +1124,14 @@ if KERNEL_IPV6
 
 	config KERNEL_LWTUNNEL_BPF
 		def_bool n
+
+	config KERNEL_MPTCP_IPV6
+		bool "Enable IPv6 MultiPath TCP support"
+		default y
+		depends on KERNEL_MPTCP
+		depends on !(LINUX_4_4||LINUX_5_4)
+		help
+		  IPv6 MultiPath TCP to kernel support.
 
 endif
 
