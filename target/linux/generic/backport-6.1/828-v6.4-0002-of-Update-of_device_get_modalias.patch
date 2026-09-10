@@ -32,7 +32,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  {
  	const char *compat;
  	char *c;
-@@ -256,19 +256,16 @@ static ssize_t of_device_get_modalias(st
+@@ -256,20 +256,17 @@ static ssize_t of_device_get_modalias(st
  	ssize_t csize;
  	ssize_t tsize;
  
@@ -46,16 +46,17 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +	csize = snprintf(str, len, "of:N%pOFn%c%s", np, 'T',
 +			 of_node_get_device_type(np));
  	tsize = csize;
+ 	if (csize >= len)
+ 		csize = len > 0 ? len - 1 : 0;
  	len -= csize;
- 	if (str)
- 		str += csize;
+ 	str += csize;
  
 -	of_property_for_each_string(dev->of_node, "compatible", p, compat) {
 +	of_property_for_each_string(np, "compatible", p, compat) {
  		csize = strlen(compat) + 1;
  		tsize += csize;
- 		if (csize > len)
-@@ -293,7 +290,10 @@ int of_device_request_module(struct devi
+ 		if (csize >= len)
+@@ -294,7 +291,10 @@ int of_device_request_module(struct devi
  	ssize_t size;
  	int ret;
  
@@ -67,7 +68,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	if (size < 0)
  		return size;
  
-@@ -304,7 +304,7 @@ int of_device_request_module(struct devi
+@@ -305,7 +305,7 @@ int of_device_request_module(struct devi
  	if (!str)
  		return -ENOMEM;
  
@@ -76,7 +77,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	str[size - 1] = '\0';
  	ret = request_module(str);
  	kfree(str);
-@@ -321,7 +321,12 @@ EXPORT_SYMBOL_GPL(of_device_request_modu
+@@ -322,7 +322,12 @@ EXPORT_SYMBOL_GPL(of_device_request_modu
   */
  ssize_t of_device_modalias(struct device *dev, char *str, ssize_t len)
  {
@@ -90,7 +91,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	if (sl < 0)
  		return sl;
  	if (sl > len - 2)
-@@ -386,8 +391,8 @@ int of_device_uevent_modalias(struct dev
+@@ -387,8 +392,8 @@ int of_device_uevent_modalias(struct dev
  	if (add_uevent_var(env, "MODALIAS="))
  		return -ENOMEM;
  

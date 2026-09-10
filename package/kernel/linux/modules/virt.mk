@@ -78,7 +78,7 @@ $(eval $(call KernelPackage,kvm-amd))
 define KernelPackage/vfio
   SUBMENU:=Virtualization
   TITLE:=VFIO Non-Privileged userspace driver framework
-  DEPENDS:=@TARGET_x86_64||TARGET_armvirt_64
+  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8
   KCONFIG:= \
 	CONFIG_VFIO \
 	CONFIG_VFIO_NOIOMMU=n \
@@ -101,7 +101,7 @@ $(eval $(call KernelPackage,vfio))
 define KernelPackage/vfio-pci
   SUBMENU:=Virtualization
   TITLE:=Generic VFIO support for any PCI device
-  DEPENDS:=@TARGET_x86_64 @PCI_SUPPORT +kmod-vfio +kmod-irqbypass
+  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8 @PCI_SUPPORT +kmod-vfio +kmod-irqbypass
   KCONFIG:= \
 	CONFIG_VFIO_PCI \
 	CONFIG_VFIO_PCI_IGD=n
@@ -142,36 +142,6 @@ endef
 
 $(eval $(call KernelPackage,vhost-net))
 
-define KernelPackage/iommu_v2
-  SUBMENU:=Virtualization
-  TITLE:=IOMMU Version 2 driver
-  KCONFIG:=\
-     CONFIG_UACCE=n \
-     CONFIG_IOMMU_DEBUGFS=n \
-     CONFIG_INTEL_IOMMU=y \
-     CONFIG_INTEL_IOMMU_SVM=n \
-     CONFIG_INTEL_IOMMU_DEFAULT_ON=n \
-     CONFIG_INTEL_IOMMU_SCALABLE_MODE_DEFAULT_ON=n \
-     CONFIG_INTEL_TXT=n \
-     CONFIG_HYPERV_IOMMU=n \
-     CONFIG_IOMMU_SUPPORT=y \
-     CONFIG_IOMMU_DEFAULT_PASSTHROUGH=y \
-     CONFIG_AMD_IOMMU=y \
-     CONFIG_IRQ_REMAP=y \
-     CONFIG_AMD_IOMMU_V2=m
-  DEPENDS:= @PCI_SUPPORT @TARGET_x86_64
-  FILES:= $(LINUX_DIR)/drivers/iommu/amd/iommu_v2.ko
-  AUTOLOAD:=$(call AutoProbe,iommu_v2)
-endef
-
-define KernelPackage/iommu_v2/description
-  This option enables support for the AMD/INTEL IOMMUv2 features
-  of the IOMMU hardware. Select this option if you want
-  to use devices that support the PCI PRI and PASID interface.
-endef
-
-$(eval $(call KernelPackage,iommu_v2))
-
 define KernelPackage/vfio-mdev
   SUBMENU:=Virtualization
   TITLE:=VFIO driver support to to virtualize devices
@@ -196,6 +166,63 @@ define KernelPackage/vfio-mdev/description
 endef
 
 $(eval $(call KernelPackage,vfio-mdev))
+
+
+define KernelPackage/vsock
+  SUBMENU:=Virtualization
+  TITLE:=Virtual Socket Protocol
+  KCONFIG:= \
+	CONFIG_VSOCKETS \
+	CONFIG_VSOCKETS_LOOPBACK=n \
+	CONFIG_HYPERV_VSOCKETS=n
+  FILES:=$(LINUX_DIR)/net/vmw_vsock/vsock.ko
+  AUTOLOAD:=$(call AutoProbe,vsock)
+endef
+
+define KernelPackage/vsock/description
+  Kernel support support for the Virtual Socket Protocol.
+  Often used when running in a VM to communicate with the hypervisor.
+  Additionally needs a hypervisor-specific transport driver.
+endef
+
+$(eval $(call KernelPackage,vsock))
+
+
+define KernelPackage/vsock-virtio-common
+  SUBMENU:=Virtualization
+  TITLE:=Module used by other drivers to access Virtio Virtual Sockets
+  DEPENDS:=+kmod-vsock
+  KCONFIG:=CONFIG_VIRTIO_VSOCKETS_COMMON
+  FILES:=$(LINUX_DIR)/net/vmw_vsock/vmw_vsock_virtio_transport_common.ko
+  AUTOLOAD:=$(call AutoProbe,vmw_vsock_virtio_transport_common)
+  HIDDEN:=1
+endef
+
+$(eval $(call KernelPackage,vsock-virtio-common))
+
+
+define KernelPackage/vsock-virtio
+  SUBMENU:=Virtualization
+  TITLE:=Virtio transport driver for Virtual Sockets
+  DEPENDS:= @VIRTIO_SUPPORT +kmod-vsock +kmod-vsock-virtio-common
+  KCONFIG:=CONFIG_VIRTIO_VSOCKETS
+  FILES:=$(LINUX_DIR)/net/vmw_vsock/vmw_vsock_virtio_transport.ko
+  AUTOLOAD:=$(call AutoProbe,vmw_vsock_virtio_transport)
+endef
+
+define KernelPackage/vsock-virtio/description
+  Kernel support for Virtual Sockets over virtio.
+  Enable this transport if you plan to run OpenWRT in a virtual machine and the
+  hypervisor supports Virtual Sockets over virtio (Incus for example).
+
+  Usually needed by "guest agents" to function, as it provides a communication
+  channel between the guest os and the hypervisor.
+
+  The module will be called vmw_vsock_virtio_transport.
+endef
+
+$(eval $(call KernelPackage,vsock-virtio))
+
 
 define KernelPackage/i915-gvt
   SUBMENU:=Virtualization

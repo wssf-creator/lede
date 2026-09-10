@@ -5,19 +5,19 @@ DEVICE_VARS += WRGG_DEVNAME WRGG_SIGNATURE
 
 define Device/FitImage
 	KERNEL_SUFFIX := -fit-uImage.itb
-	KERNEL = kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	KERNEL = kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(DEVICE_DTS).dtb
 	KERNEL_NAME := Image
 endef
 
 define Device/FitImageLzma
 	KERNEL_SUFFIX := -fit-uImage.itb
-	KERNEL = kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb
 	KERNEL_NAME := Image
 endef
 
 define Device/FitzImage
 	KERNEL_SUFFIX := -fit-zImage.itb
-	KERNEL = kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb
+	KERNEL = kernel-bin | fit none $$(KDIR)/image-$$(DEVICE_DTS).dtb
 	KERNEL_NAME := zImage
 endef
 
@@ -164,6 +164,30 @@ define Device/alfa-network_ap120c-ac
 endef
 TARGET_DEVICES += alfa-network_ap120c-ac
 
+define Device/alibaba_ap4220
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := Alibaba
+	DEVICE_MODEL := AP4220
+	SOC := qcom-ipq4018
+	KERNEL_SIZE := 4096k
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES += ipq-wifi-alibaba_ap4220
+endef
+
+define Device/alibaba_ap4220-48m
+	$(call Device/alibaba_ap4220)
+	DEVICE_VARIANT := 48M
+endef
+TARGET_DEVICES += alibaba_ap4220-48m
+
+define Device/alibaba_ap4220-128m
+	$(call Device/alibaba_ap4220)
+	DEVICE_VARIANT := 128M
+endef
+TARGET_DEVICES += alibaba_ap4220-128m
+
 define Device/aruba_glenmorangie
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := Aruba
@@ -223,6 +247,8 @@ define Device/asus_rt-ac42u
 #	Rather, this device is a/k/a RT-AC42U
 #	But we'll go with what the vendor firmware has...
 	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC82U')
+	KERNEL_INITRAMFS := $$(KERNEL) | uImage none
+	KERNEL_INITRAMFS_SUFFIX := -factory.trx
 	DEVICE_PACKAGES := ath10k-firmware-qca9984-ct kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += asus_rt-ac42u
@@ -244,6 +270,8 @@ define Device/asus_rt-ac58u
 #	to add a version... or we are very careful not to add '\0' into that
 #	string and call it a day.... Yeah, we do the latter!
 	UIMAGE_NAME:=$(shell echo -e '\03\01\01\01RT-AC58U')
+	KERNEL_INITRAMFS := $$(KERNEL) | uImage none
+	KERNEL_INITRAMFS_SUFFIX := -factory.trx
 	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers \
 		kmod-usb-ledtrig-usbport
 endef
@@ -308,8 +336,8 @@ TARGET_DEVICES += buffalo_wtr-m2133hp
 
 define Device/cellc_rtl30vw
 	KERNEL_SUFFIX := -fit-zImage.itb
-	KERNEL_INITRAMFS = kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb
-	KERNEL = kernel-bin | fit none $$(DTS_DIR)/$$(DEVICE_DTS).dtb | uImage lzma | pad-to 2048
+	KERNEL_INITRAMFS = kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(DEVICE_DTS).dtb
+	KERNEL = kernel-bin | fit none $$(KDIR)/image-$$(DEVICE_DTS).dtb | uImage lzma | pad-to 2048
 	KERNEL_NAME := zImage
 	KERNEL_IN_UBI :=
 	IMAGES := nand-factory.bin nand-sysupgrade.bin
@@ -376,7 +404,7 @@ define Device/devolo_magic-2-wifi-next
 
 	# If the bootloader sees 0xDEADC0DE and this trailer at the 64k boundary of a TFTP image
 	# it will bootm it, just like we want for the initramfs.
-	KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(DTS_DIR)/$$(DEVICE_DTS).dtb | pad-to 64k |\
+	KERNEL_INITRAMFS := kernel-bin | gzip | fit gzip $$(KDIR)/image-$$(DEVICE_DTS).dtb | pad-to 64k |\
 		append-string -e '\xDE\xAD\xC0\xDE{"fl_initramfs":""}\x00'
 
 	IMAGE_SIZE := 26624k
@@ -800,7 +828,7 @@ define Device/openmesh_a42
 	SOC := qcom-ipq4018
 	DEVICE_DTS_CONFIG := config@om.a42
 	BLOCKSIZE := 64k
-	KERNEL = kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
+	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
 	IMAGE_SIZE := 15616k
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=A42
@@ -815,7 +843,7 @@ define Device/openmesh_a62
 	SOC := qcom-ipq4019
 	DEVICE_DTS_CONFIG := config@om.a62
 	BLOCKSIZE := 64k
-	KERNEL = kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
+	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
 	IMAGE_SIZE := 15552k
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=A62
@@ -856,7 +884,7 @@ define Device/plasmacloud_pa1200
 	SOC := qcom-ipq4018
 	DEVICE_DTS_CONFIG := config@pc.pa1200
 	BLOCKSIZE := 64k
-	KERNEL = kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
+	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
 	IMAGE_SIZE := 15616k
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=PA1200
@@ -871,7 +899,7 @@ define Device/plasmacloud_pa2200
 	SOC := qcom-ipq4019
 	DEVICE_DTS_CONFIG := config@pc.pa2200
 	BLOCKSIZE := 64k
-	KERNEL = kernel-bin | lzma | fit lzma $$(DTS_DIR)/$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
+	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb | pad-to $$(BLOCKSIZE)
 	IMAGE_SIZE := 15552k
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=PA2200
@@ -968,6 +996,20 @@ define Device/tel_x1pro
 	DEFAULT := n
 endef
 TARGET_DEVICES += tel_x1pro
+
+define Device/thinkplus_fogpod800
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := ThinkPlus
+	DEVICE_MODEL := FogPOD800
+	SOC := qcom-ipq4028
+	KERNEL_SIZE := 4096k
+	DEVICE_DTS_CONFIG := config@ap.dk01.1-c2
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_PACKAGES := kmod-usb-ledtrig-usbport ipq-wifi-thinkplus_fogpod800
+endef
+TARGET_DEVICES += thinkplus_fogpod800
 
 define Device/unielec_u4019-32m
 	$(call Device/FitImage)

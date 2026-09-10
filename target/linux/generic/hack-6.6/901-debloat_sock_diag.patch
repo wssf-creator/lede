@@ -83,7 +83,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  INDIRECT_CALLABLE_DECLARE(struct dst_entry *ip6_dst_check(struct dst_entry *,
  							  u32));
  INDIRECT_CALLABLE_DECLARE(struct dst_entry *ipv4_dst_check(struct dst_entry *,
-@@ -2247,9 +2264,11 @@ static void __sk_free(struct sock *sk)
+@@ -2267,9 +2284,11 @@ static void __sk_free(struct sock *sk)
  	if (likely(sk->sk_net_refcnt))
  		sock_inuse_add(sock_net(sk), -1);
  
@@ -105,8 +105,8 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  #include <linux/inet_diag.h>
  #include <linux/sock_diag.h>
  
-@@ -21,23 +20,6 @@ static int (*inet_rcv_compat)(struct sk_
- static DEFINE_MUTEX(sock_diag_table_mutex);
+@@ -22,23 +21,6 @@ static const struct sock_diag_inet_compa
+ 
  static struct workqueue_struct *broadcast_wq;
  
 -DEFINE_COOKIE(sock_cookie);
@@ -161,7 +161,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	  Support for PF_PACKET sockets monitoring interface used by the ss tool.
 --- a/net/unix/Kconfig
 +++ b/net/unix/Kconfig
-@@ -29,6 +29,7 @@ config	AF_UNIX_OOB
+@@ -24,6 +24,7 @@ config	AF_UNIX_OOB
  config UNIX_DIAG
  	tristate "UNIX: socket monitoring interface"
  	depends on UNIX

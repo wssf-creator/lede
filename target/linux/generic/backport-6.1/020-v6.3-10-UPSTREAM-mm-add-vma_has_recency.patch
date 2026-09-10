@@ -77,7 +77,7 @@ Signed-off-by: T.J. Mercier <tjmercier@google.com>
  #endif
 --- a/mm/memory.c
 +++ b/mm/memory.c
-@@ -1445,8 +1445,7 @@ again:
+@@ -1443,8 +1443,7 @@ again:
  					force_flush = 1;
  					set_page_dirty(page);
  				}
@@ -87,7 +87,7 @@ Signed-off-by: T.J. Mercier <tjmercier@google.com>
  					mark_page_accessed(page);
  			}
  			rss[mm_counter(page)]--;
-@@ -5219,8 +5218,8 @@ static inline void mm_account_fault(stru
+@@ -5235,8 +5234,8 @@ static inline void mm_account_fault(stru
  #ifdef CONFIG_LRU_GEN
  static void lru_gen_enter_fault(struct vm_area_struct *vma)
  {
@@ -177,7 +177,7 @@ Signed-off-by: T.J. Mercier <tjmercier@google.com>
  
 --- a/mm/vmscan.c
 +++ b/mm/vmscan.c
-@@ -3778,7 +3778,10 @@ static int should_skip_vma(unsigned long
+@@ -3787,7 +3787,10 @@ static int should_skip_vma(unsigned long
  	if (is_vm_hugetlb_page(vma))
  		return true;
  

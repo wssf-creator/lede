@@ -87,11 +87,21 @@ endif
 
 JFFS2_BLOCKSIZE ?= 64k 128k
 
+EROFS_PCLUSTERSIZE = $(shell echo $$(($(CONFIG_TARGET_EROFS_PCLUSTER_SIZE)*1024)))
+EROFSOPT := -Efragments,dedupe,ztailpacking -Uclear --all-root
+EROFSOPT += $(if $(SOURCE_DATE_EPOCH),-T$(SOURCE_DATE_EPOCH) --ignore-mtime)
+EROFSOPT += $(if $(CONFIG_SELINUX),,-x-1)
+EROFSCOMP := lz4hc,12
+ifeq ($(CONFIG_EROFS_FS_ZIP_LZMA),y)
+EROFSCOMP := lzma,109
+endif
+
 fs-types-$(CONFIG_TARGET_ROOTFS_SQUASHFS) += squashfs
 fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addprefix jffs2-,$(JFFS2_BLOCKSIZE))
 fs-types-$(CONFIG_TARGET_ROOTFS_JFFS2_NAND) += $(addprefix jffs2-nand-,$(NAND_BLOCKSIZE))
 fs-types-$(CONFIG_TARGET_ROOTFS_EXT4FS) += ext4
 fs-types-$(CONFIG_TARGET_ROOTFS_UBIFS) += ubifs
+fs-types-$(CONFIG_TARGET_ROOTFS_EROFS) += erofs
 fs-subtypes-$(CONFIG_TARGET_ROOTFS_JFFS2) += $(addsuffix -raw,$(addprefix jffs2-,$(JFFS2_BLOCKSIZE)))
 
 TARGET_FILESYSTEMS := $(fs-types-y)
@@ -275,9 +285,21 @@ define Image/mkfs/ext4
 		$@ $(call mkfs_target_dir,$(1))/
 endef
 
+# Don't use the mkfs.erofs builtin $SOURCE_DATE_EPOCH behavior
+define Image/mkfs/erofs
+	env -u SOURCE_DATE_EPOCH $(STAGING_DIR_HOST)/bin/mkfs.erofs -z$(EROFSCOMP) \
+		-C$(EROFS_PCLUSTERSIZE) $(EROFSOPT) \
+		$@ $(call mkfs_target_dir,$(1))
+endef
+
 define Image/Manifest
-	$(call opkg,$(TARGET_DIR_ORIG)) list-installed > \
-		$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest
+	$(if $(CONFIG_USE_APK), \
+		$(call apk,$(TARGET_DIR_ORIG)) list --quiet --manifest --no-network \
+			--repositories-file /dev/null | sort | sed 's/ / - /'  > \
+			$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest, \
+		$(call opkg,$(TARGET_DIR_ORIG)) list-installed > \
+			$(BIN_DIR)/$(IMG_PREFIX)$(if $(PROFILE_SANITIZED),-$(PROFILE_SANITIZED)).manifest \
+	)
 endef
 
 define Image/gzip-ext4-padded-squashfs
@@ -320,7 +342,20 @@ opkg_target = \
 	$(call opkg,$(mkfs_cur_target_dir)) \
 		-f $(mkfs_cur_target_dir).conf
 
+apk_target = \
+	$(call apk,$(mkfs_cur_target_dir)) --no-scripts \
+		--repositories-file /dev/null --repository file://$(PACKAGE_DIR_ALL)/packages.adb
+
+
 target-dir-%: FORCE
+ifneq ($(CONFIG_USE_APK),)
+	rm -rf $(mkfs_cur_target_dir)
+	$(CP) $(TARGET_DIR_ORIG) $(mkfs_cur_target_dir)
+	$(if $(mkfs_packages_remove), \
+		-$(apk_target) del $(mkfs_packages_remove))
+	$(if $(mkfs_packages_add), \
+		$(apk_target) add $(mkfs_packages_add))
+else
 	rm -rf $(mkfs_cur_target_dir) $(mkfs_cur_target_dir).opkg
 	$(CP) $(TARGET_DIR_ORIG) $(mkfs_cur_target_dir)
 	-mv $(mkfs_cur_target_dir)/etc/opkg $(mkfs_cur_target_dir).opkg
@@ -334,6 +369,7 @@ target-dir-%: FORCE
 			$(call opkg_package_files,$(mkfs_packages_add)))
 	-$(CP) -T $(mkfs_cur_target_dir).opkg/ $(mkfs_cur_target_dir)/etc/opkg/
 	rm -rf $(mkfs_cur_target_dir).opkg $(mkfs_cur_target_dir).conf
+endif
 	$(call prepare_rootfs,$(mkfs_cur_target_dir),$(TOPDIR)/files)
 
 $(KDIR)/root.%: kernel_prepare
@@ -502,6 +538,9 @@ define Device/Build/initramfs
 
   $(KDIR)/$$(KERNEL_INITRAMFS_NAME):: image_prepare
   $(1)-images: $$(if $$(KERNEL_INITRAMFS),$(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE))
+
+  .IGNORE: $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE)
+
   $(BIN_DIR)/$$(KERNEL_INITRAMFS_IMAGE): $(KDIR)/tmp/$$(KERNEL_INITRAMFS_IMAGE)
 	cp $$^ $$@
 

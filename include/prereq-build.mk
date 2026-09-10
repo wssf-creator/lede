@@ -15,7 +15,7 @@ $(eval $(call TestHostCommand,working-make, \
 	$(MAKE) -v | grep -E 'Make (4\.[1-9]|[5-9]\.)'))
 
 $(eval $(call TestHostCommand,case-sensitive-fs, \
-	OpenWrt can only be built on a case-sensitive filesystem, \
+	LEDE can only be built on a case-sensitive filesystem, \
 	rm -f $(TMP_DIR)/test.*; touch $(TMP_DIR)/test.fs; \
 		test ! -f $(TMP_DIR)/test.FS))
 
@@ -158,11 +158,14 @@ $(eval $(call SetupHostCommand,unzip,Please install 'unzip', \
 $(eval $(call SetupHostCommand,bzip2,Please install 'bzip2', \
 	bzip2 --version </dev/null))
 
+$(eval $(call SetupHostCommand,xz,Please install 'xz', \
+	xz --version </dev/null))
+
 $(eval $(call SetupHostCommand,wget,Please install GNU 'wget', \
 	wget --version | grep GNU))
 
-$(eval $(call SetupHostCommand,install,Please install GNU 'install', \
-	install --version | grep GNU, \
+$(eval $(call SetupHostCommand,install,Please install 'install', \
+	install --version | grep 'GNU\|uutils', \
 	ginstall --version | grep GNU))
 
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \

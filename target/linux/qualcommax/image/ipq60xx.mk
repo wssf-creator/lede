@@ -1,28 +1,23 @@
-define Device/FitImage
-	KERNEL_SUFFIX := -uImage.itb
-	KERNEL = kernel-bin | libdeflate-gzip | fit gzip $$(KDIR)/image-$$(DEVICE_DTS).dtb
-	KERNEL_NAME := Image
-endef
-
-define Device/FitImageLzma
-	KERNEL_SUFFIX := -uImage.itb
-	KERNEL = kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(DEVICE_DTS).dtb
-	KERNEL_NAME := Image
-endef
-
-define Device/UbiFit
-	KERNEL_IN_UBI := 1
-	IMAGES := factory.ubi sysupgrade.bin
-	IMAGE/factory.ubi := append-ubi
-	IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-endef
-
 define Device/EmmcImage
-	IMAGES := factory.bin recovery.bin sysupgrade.bin
+	IMAGES += factory.bin recovery.bin
 	IMAGE/factory.bin := append-kernel | pad-to 12288k | append-rootfs | append-metadata
 	IMAGE/recovery.bin := append-kernel | pad-to 6144k | append-rootfs | append-metadata
 	IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-to 64k | sysupgrade-tar rootfs=$$$$@ | append-metadata
 endef
+
+define Device/anysafe_e1
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := AnySafe
+	DEVICE_MODEL := E1
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	DEVICE_DTS := ipq6010-anysafe-e1
+	DEVICE_DTS_CONFIG := config@cp01-c3
+	DEVICE_PACKAGES := ath11k-firmware-qcn9074 ipq-wifi-anysafe_e1 \
+		kmod-ath11k-pci kmod-hwmon-pwmfan
+endef
+TARGET_DEVICES += anysafe_e1
 
 define Device/cmiot_ax18
 	$(call Device/FitImage)
@@ -36,29 +31,55 @@ define Device/cmiot_ax18
 endef
 TARGET_DEVICES += cmiot_ax18
 
-define Device/glinet_gl-ax1800
+define Device/zn_m2
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := ZN
+	DEVICE_MODEL := M2
+	DEVICE_DTS := ipq6018-m2
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq6018
+endef
+TARGET_DEVICES += zn_m2
+
+define Device/dptech_ap3000-2c
+	$(call Device/FitImage)
+	$(call Device/UbiFit)
+	DEVICE_VENDOR := DPtech
+	DEVICE_MODEL := AP3000-2C
+	BLOCKSIZE := 128k
+	PAGESIZE := 2048
+	SOC := ipq6000
+	DEVICE_DTS_CONFIG := config@cp03-c1-DP019
+	DEVICE_PACKAGES := ipq-wifi-dptech_ap3000-2c
+endef
+TARGET_DEVICES += dptech_ap3000-2c
+
+define Device/glinet_gl-common
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
 	DEVICE_VENDOR := GL.iNet
-	DEVICE_MODEL := GL-AX1800
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 	DEVICE_DTS_CONFIG := config@cp03-c1
 	SOC := ipq6000
+endef
+
+define Device/glinet_gl-ax1800
+	$(call Device/glinet_gl-common)
+	DEVICE_MODEL := GL-AX1800
 	DEVICE_PACKAGES := ipq-wifi-glinet_gl-ax1800
+	SUPPORTED_DEVICES += glinet,ax1800
 endef
 TARGET_DEVICES += glinet_gl-ax1800
 
 define Device/glinet_gl-axt1800
-	$(call Device/FitImage)
-	$(call Device/UbiFit)
-	DEVICE_VENDOR := GL.iNet
+	$(call Device/glinet_gl-common)
 	DEVICE_MODEL := GL-AXT1800
-	BLOCKSIZE := 128k
-	PAGESIZE := 2048
-	DEVICE_DTS_CONFIG := config@cp03-c1
-	SOC := ipq6000
-	DEVICE_PACKAGES := ipq-wifi-glinet_gl-axt1800 kmod-hwmon-gpiofan
+	DEVICE_PACKAGES := ipq-wifi-glinet_gl-axt1800 kmod-hwmon-pwmfan
+	SUPPORTED_DEVICES += glinet,axt1800
 endef
 TARGET_DEVICES += glinet_gl-axt1800
 
@@ -71,9 +92,22 @@ define Device/jdcloud_re-cs-02
 	BLOCKSIZE := 64k
 	KERNEL_SIZE := 6144k
 	DEVICE_DTS_CONFIG := config@cp03-c3
-	DEVICE_PACKAGES := ipq-wifi-jdcloud_ax6600 kmod-ath11k-pci ath11k-firmware-qcn9074
+	DEVICE_PACKAGES := ath11k-firmware-qcn9074 ipq-wifi-jdcloud_re-cs-02 kmod-ath11k-pci
 endef
 TARGET_DEVICES += jdcloud_re-cs-02
+
+define Device/jdcloud_re-cs-07
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := JDCloud
+	DEVICE_MODEL := ER1
+	SOC := ipq6010
+	BLOCKSIZE := 64k
+	KERNEL_SIZE := 6144k
+	DEVICE_DTS_CONFIG := config@cp03-c4
+	DEVICE_PACKAGES := -kmod-ath11k-ahb -ath11k-firmware-ipq6018
+endef
+TARGET_DEVICES += jdcloud_re-cs-07
 
 define Device/jdcloud_re-ss-01
 	$(call Device/FitImage)
@@ -84,9 +118,28 @@ define Device/jdcloud_re-ss-01
 	BLOCKSIZE := 64k
 	KERNEL_SIZE := 6144k
 	DEVICE_DTS_CONFIG := config@cp03-c2
-	DEVICE_PACKAGES := ipq-wifi-jdcloud_ax1800pro
+	DEVICE_PACKAGES := ipq-wifi-jdcloud_re-ss-01
 endef
 TARGET_DEVICES += jdcloud_re-ss-01
+
+define Device/link_nn6000-v1
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := Link
+	DEVICE_MODEL := NN6000 v1
+	SOC := ipq6000
+	KERNEL_SIZE := 6144k
+	DEVICE_DTS_CONFIG := config@cp03-c1
+	DEVICE_PACKAGES := ipq-wifi-link_nn6000 kmod-fs-f2fs f2fs-tools
+	IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-rootfs | append-metadata
+endef
+TARGET_DEVICES += link_nn6000-v1
+
+define Device/link_nn6000-v2
+	$(Device/link_nn6000-v1)
+	DEVICE_MODEL := NN6000 v2
+endef
+TARGET_DEVICES += link_nn6000-v2
 
 define Device/linksys_mr7350
 	$(call Device/FitImage)
@@ -104,6 +157,19 @@ define Device/linksys_mr7350
 		kmod-leds-pca963x kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += linksys_mr7350
+
+define Device/philips_ly1800
+	$(call Device/FitImage)
+	$(call Device/EmmcImage)
+	DEVICE_VENDOR := Philips
+	DEVICE_MODEL := LY1800
+	SOC := ipq6010
+	BLOCKSIZE := 64k
+	KERNEL_SIZE := 6144k
+	DEVICE_DTS_CONFIG := config@cp01-c1
+	DEVICE_PACKAGES := ipq-wifi-philips_ly1800
+endef
+TARGET_DEVICES += philips_ly1800
 
 define Device/qihoo_360v6
 	$(call Device/FitImage)

@@ -339,7 +339,11 @@ static bool fast_classifier_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_ad
 	 * neighbours are routers too.
 	 */
 	if (likely(is_v4)) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0))
 		rt = ip_route_output(&init_net, addr->ip, 0, 0, 0);
+#else
+		rt = ip_route_output(&init_net, addr->ip, 0, 0, 0, RT_SCOPE_LINK);
+#endif
 		if (unlikely(IS_ERR(rt))) {
 			goto ret_fail;
 		}
@@ -1001,13 +1005,15 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 		 * Do not accelerate for now.
 		 */
 		if (ntohs(sic.dest_port) == 4500 || ntohs(sic.dest_port) == 500) {
-			if (likely(is_v4))
+			if (likely(is_v4)) {
 				DEBUG_TRACE("quarkysg:: IPsec bypass: %pI4:%d(%pI4:%d) to %pI4:%d(%pI4:%d)\n",
 					&sic.src_ip.ip, ntohs(sic.src_port), &sic.src_ip_xlate.ip, ntohs(sic.src_port_xlate),
 					&sic.dest_ip.ip, ntohs(sic.dest_port), &sic.dest_ip_xlate.ip, ntohs(sic.dest_port_xlate));
-			else
+					}
+			else {
 				DEBUG_TRACE("quarkysg:: IPsec bypass: %pI6:%d to %pI6:%d\n",
 					&sic.src_ip.ip6, ntohs(sic.src_port), &sic.dest_ip.ip6, ntohs(sic.dest_port));
+			}
 			return NF_ACCEPT;
 		}
 		break;
@@ -1761,6 +1767,9 @@ static int __init fast_classifier_init(void)
 	printk(KERN_ALERT "fast-classifier: starting up\n");
 	DEBUG_INFO("SFE CM init\n");
 
+	/* Initialize state before registering callbacks that can use it. */
+	spin_lock_init(&sc->lock);
+
 	hash_init(fc_conn_ht);
 
 	/*
@@ -1875,8 +1884,6 @@ static int __init fast_classifier_init(void)
 #endif
 
 	printk(KERN_ALERT "fast-classifier: registered\n");
-
-	spin_lock_init(&sc->lock);
 
 	/*
 	 * Hook the receive path in the network stack.
@@ -1999,4 +2006,3 @@ module_exit(fast_classifier_exit)
 
 MODULE_DESCRIPTION("Shortcut Forwarding Engine - Connection Manager");
 MODULE_LICENSE("Dual BSD/GPL");
-

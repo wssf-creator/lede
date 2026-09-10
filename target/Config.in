@@ -32,6 +32,9 @@ config PCIE_SUPPORT
 config PCMCIA_SUPPORT
 	bool
 
+config PINCTRL_SUPPORT
+	bool
+
 config PWM_SUPPORT
 	bool
 
@@ -67,6 +70,9 @@ config USES_JFFS2_NAND
 	bool
 
 config USES_EXT4
+	bool
+
+config USES_EROFS
 	bool
 
 config USES_TARGZ

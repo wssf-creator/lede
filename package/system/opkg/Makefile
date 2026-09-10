@@ -7,14 +7,14 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=opkg
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_RELEASE:=1
 PKG_FLAGS:=essential
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/opkg-lede.git
-PKG_SOURCE_DATE:=2022-02-24
-PKG_SOURCE_VERSION:=d038e5b6d155784575f62a66a8bb7e874173e92e
-PKG_MIRROR_HASH:=e5ec4ae93f6529f7f0b9acc22a9a63c1b2f27d3b30b4a82041fcd58b9bc7cdf3
+PKG_SOURCE_DATE:=2025-11-05
+PKG_SOURCE_VERSION:=80503d94e356476250adaf1f669ee955ec26de76
+PKG_MIRROR_HASH:=9b03e302bc68a16e0262ab73fb47cf04b628062b44390bb2704894aeaa9382cb
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=COPYING
@@ -28,6 +28,8 @@ PKG_CONFIG_DEPENDS += \
 
 HOST_BUILD_DEPENDS:=libubox/host
 
+PKG_BUILD_FLAGS:=gc-sections
+
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -37,6 +39,7 @@ define Package/opkg
   CATEGORY:=Base system
   TITLE:=opkg package manager
   DEPENDS:=+uclient-fetch +libpthread +libubox
+  DEFAULT:=y if !USE_APK
   URL:=$(PKG_SOURCE_URL)
   MENU:=1
 endef
@@ -57,7 +60,6 @@ define Package/opkg/conffiles
 /etc/opkg/customfeeds.conf
 endef
 
-TARGET_CFLAGS += -ffunction-sections -fdata-sections
 EXTRA_CFLAGS += $(TARGET_CPPFLAGS)
 
 CMAKE_OPTIONS += \

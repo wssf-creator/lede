@@ -32,6 +32,8 @@ ubootenv_mtdinfo () {
 
 case "$board" in
 alfa-network,ap120c-ac|\
+alibaba,ap4220-48m|\
+alibaba,ap4220-128m|\
 devolo,magic-2-wifi-next|\
 edgecore,ecw5211|\
 glinet,gl-a1300 |\
@@ -44,7 +46,8 @@ openmesh,a42|\
 openmesh,a62|\
 pakedge,wr-1|\
 plasmacloud,pa1200|\
-plasmacloud,pa2200)
+plasmacloud,pa2200|\
+thinkplus,fogpod800)
 	ubootenv_add_uci_config "/dev/mtd5" "0x0" "0x10000" "0x10000"
 	;;
 aruba,ap-303)

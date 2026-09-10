@@ -1,13 +1,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=qca-nss-dp
-PKG_RELEASE:=2
+PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-dp.git
+PKG_SOURCE_URL:=https://github.com/openwrt/qca-nss-dp.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2023-06-06
-PKG_SOURCE_VERSION:=fa67464466f69f00967cc373d1bdd6025f57eb89
-PKG_MIRROR_HASH:=51bf524382a5cb542c2c80d12a91f87b9736de3ac3c1d4a351c97b3502d68574
+PKG_SOURCE_DATE:=2025-11-22
+PKG_SOURCE_VERSION:=cdedfd891bdf7edd919e51fc3b35c68c860b6815
+PKG_MIRROR_HASH:=3045f32c90544a1f020ddd0466dfb2d22fbb830b7ab4b9b6d7a2124c3c77611e
 
 PKG_BUILD_PARALLEL:=1
 PKG_FLAGS:=nonshared
@@ -39,7 +39,7 @@ EXTRA_CFLAGS+= \
 
 NSS_DP_HAL_DIR:=$(PKG_BUILD_DIR)/hal
 define Build/Configure
-	$(LN) $(NSS_DP_HAL_DIR)/soc_ops/$(CONFIG_TARGET_SUBTARGET)/nss_$(CONFIG_TARGET_SUBTARGET).h \
+	$(CP) $(NSS_DP_HAL_DIR)/soc_ops/$(CONFIG_TARGET_SUBTARGET)/nss_$(CONFIG_TARGET_SUBTARGET).h \
 		$(PKG_BUILD_DIR)/exports/nss_dp_arch.h
 endef
 

@@ -66,7 +66,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  static void rt_fibinfo_free(struct rtable __rcu **rtp)
 --- a/net/ipv4/fib_trie.c
 +++ b/net/ipv4/fib_trie.c
-@@ -2741,6 +2741,7 @@ static const char *const rtn_type_names[
+@@ -2717,6 +2717,7 @@ static const char *const rtn_type_names[
  	[RTN_THROW] = "THROW",
  	[RTN_NAT] = "NAT",
  	[RTN_XRESOLVE] = "XRESOLVE",
@@ -76,7 +76,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  static inline const char *rtn_type(char *buf, size_t len, unsigned int t)
 --- a/net/ipv4/ipmr.c
 +++ b/net/ipv4/ipmr.c
-@@ -175,6 +175,7 @@ static int ipmr_rule_action(struct fib_r
+@@ -185,6 +185,7 @@ static int ipmr_rule_action(struct fib_r
  	case FR_ACT_UNREACHABLE:
  		return -ENETUNREACH;
  	case FR_ACT_PROHIBIT:
@@ -138,7 +138,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  static const struct rt6_info ip6_blk_hole_entry_template = {
  	.dst = {
  		.__refcnt	= ATOMIC_INIT(1),
-@@ -1032,6 +1046,7 @@ static const int fib6_prop[RTN_MAX + 1]
+@@ -1035,6 +1049,7 @@ static const int fib6_prop[RTN_MAX + 1]
  	[RTN_BLACKHOLE]	= -EINVAL,
  	[RTN_UNREACHABLE] = -EHOSTUNREACH,
  	[RTN_PROHIBIT]	= -EACCES,
@@ -146,7 +146,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  	[RTN_THROW]	= -EAGAIN,
  	[RTN_NAT]	= -EINVAL,
  	[RTN_XRESOLVE]	= -EINVAL,
-@@ -1067,6 +1082,10 @@ static void ip6_rt_init_dst_reject(struc
+@@ -1070,6 +1085,10 @@ static void ip6_rt_init_dst_reject(struc
  		rt->dst.output = ip6_pkt_prohibit_out;
  		rt->dst.input = ip6_pkt_prohibit;
  		break;
@@ -157,7 +157,7 @@ Signed-off-by: Jonas Gorski <jogo@openwrt.org>
  	case RTN_THROW:
  	case RTN_UNREACHABLE:
  	default:
-@@ -4450,6 +4469,17 @@ static int ip6_pkt_prohibit_out(struct n
+@@ -4447,6 +4466,17 @@ static int ip6_pkt_prohibit_out(struct n
  	return ip6_pkt_drop(skb, ICMPV6_ADM_PROHIBITED, IPSTATS_MIB_OUTNOROUTES);
  }
  
